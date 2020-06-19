@@ -574,7 +574,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line) {
 uint64_t actual_count = 0;
 int main(int argc, char** argv) {
 	if (argc < 3) {
-		fprintf(stderr, "%s <from_batch_inclusive> <to_batch_exclusive>\n", argv[0]);
+		fprintf(stderr, "%s <from_batch_inclusive> <to_batch_exclusive> [gpu_device]\n", argv[0]);
 		return 0;
 	}
 	int start_batch = atoi(argv[1]);
@@ -583,12 +583,13 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Invalid batch bounds\n");
 		return 0;
 	}
+	int gpu_device = argc <= 3 ? 0 : atoi(argv[3]);
 
 	fprintf(stderr, "doing between %lld (inclusive) and %lld (exclusive)\n", start_batch * SEEDS_PER_CALL, end_batch * SEEDS_PER_CALL);
 	FILE* out_file = fopen("./seed_output.dat","wb");
 	
 	
-	cudaSetDevice(0);
+	cudaSetDevice(gpu_device);
 	uint64_t* buffer;
 	GPU_ASSERT(cudaMallocManaged(&buffer, sizeof(*buffer) * (SEEDS_PER_CALL>>5)));
 	GPU_ASSERT(cudaPeekAtLastError());
@@ -623,6 +624,6 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Time elapsed %dms, speed: %.2fm/s, seed count: %llu, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(1ULL<<BLOCK_SIZE_BITS)))/((double)(end - start))/1000.0, actual_count,(((double)seed)/(1ULL<<48))*100);		
 	}
 	fclose(out_file);
-	fprintf(stderr, "Finished work unit");
+	fprintf(stderr, "Finished work unit\n");
 	return 0;
 }
