@@ -49,8 +49,8 @@ __host__ __device__ static inline void advance3(Random *random) {
     *random = (*random * 0xD498BD0AC4B5ULL + 0xAA8544E593DLL) & RANDOM_MASK;
 }
 
-__host__ __device__ static inline void advance6(Random *random) {
-    *random = (*random * 0x45D73749A7F9ULL + 0x17617168255EULL) & RANDOM_MASK;
+__host__ __device__ static inline void advance4(Random *random) {
+    *random = (*random * 0x32EB772C5F11ULL + 0x2D3873C4CD04ULL) & RANDOM_MASK;
 }
 
 __host__ __device__ static inline void advance69(Random *random) {
@@ -374,13 +374,13 @@ __device__ static inline uint8_t getBiome(int x, int z, SimplexOctave precipOcta
 #define SEEDS_PER_CALL (1ULL << (BLOCK_SIZE_BITS + WORK_SIZE_BITS))
 
 #define PLAINS_BIOME_X 48
-#define PLAINS_BIOME_Z -71
+#define PLAINS_BIOME_Z -72
 #define DESERT_BIOME_X 47
-#define DESERT_BIOME_Z -71
+#define DESERT_BIOME_Z -72
 
 //DOUBLE CHECK WITH EARTH
 #define SEASONAL_FOREST_BIOME_X  80
-#define SEASONAL_FOREST_BIOME_Z  -63
+#define SEASONAL_FOREST_BIOME_Z  -64
 
 
 __global__ __launch_bounds__(1ULL<<(BLOCK_SIZE_BITS-1),2) static void checkSeedBiomes(uint64_t* bothput, uint32_t count) {
@@ -444,16 +444,26 @@ __global__ __launch_bounds__(1ULL<<(BLOCK_SIZE_BITS-1),2) static void checkSeedB
 	
 }
 
+#define PRSTR(it) if (false) printf(it "\n")
+#define PRRND(it) if (false) printf("%lld\n", (it))
 
-__device__ static inline bool checkTree(Random* rng) {
+__device__ static inline bool checkTree(uint64_t seed, Random* rng) {
+	PRSTR("Checking tree");
+	PRRND(*rng);
 	int x = random_next(rng, 4);
 	int z = random_next(rng, 4);
 	if (random_next_int(rng, 10) == 0) {
+		PRSTR("Big tree");
 		// big tree
 		advance2(rng);
 	} else {
+		PRSTR("Smol tree");
 		// smol tree
 		int height_val = random_next_int(rng, 3);
+		PRRND(*rng);
+		PRRND(x);
+		PRRND(z);
+		PRRND(height_val);
 		if (x == 7 && z == 6 && height_val != 2) {
 			bool result = true;
 			random_next(rng, 1);
@@ -462,10 +472,17 @@ __device__ static inline bool checkTree(Random* rng) {
 			result &= random_next(rng, 1) != 0;
 			result &= random_next(rng, 1) != 0;
 			result &= random_next(rng, 1) != 0;
+			result &= random_next(rng, 1) == 0;
+			result &= random_next(rng, 1) == 0;
+			result &= random_next(rng, 1) == 0;
+			random_next(rng, 1);
 			result &= random_next(rng, 1) != 0;
-			result &= random_next(rng, 1) == 0;
-			result &= random_next(rng, 1) == 0;
-			advance6(rng);
+			advance4(rng);
+			if (result) {
+				PRSTR("true");
+			} else {
+				PRSTR("false");
+			}
 			return result;
 		}
 	}
@@ -473,8 +490,8 @@ __device__ static inline bool checkTree(Random* rng) {
 }
 
 
-__device__ static inline bool checkTrees(Random rng) {
-	return checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng) || checkTree(&rng);
+__device__ static inline bool checkTrees(uint64_t seed, Random rng) {
+	return checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng) || checkTree(seed, &rng);
 }
 
 
@@ -487,30 +504,40 @@ __global__ __launch_bounds__(1ULL<<BLOCK_SIZE_BITS,4) static void checkSeed(uint
     int64_t l2 = (((int64_t)random_next_long(&rng)) / 2LL) * 2LL + 1LL;
 	
     rng = get_random((int64_t)chunkX * l1 + (int64_t)chunkZ * l2 ^ seed);
+	PRRND(rng);
 
 	// water lakes
 	if (random_next(&rng, 2) == 0) {
+		PRSTR("Water lakes");
+		PRRND(rng);
 		advance3(&rng);
 		int rand_value = random_next(&rng, 2);
 		rng = (rng * __ldg(&lake_multipliers[rand_value]) + __ldg(&lake_addends[rand_value])) & 0xffffffffffffULL;
+		PRRND(rng);
 	}
 	
 	// lava lakes
 	if (random_next(&rng, 3) == 0) {
+		PRSTR("Lava lakes");
+		PRRND(rng);
 		random_next(&rng, 1);
 		int y = random_next_int(&rng, random_next_int(&rng, 120) + 8);
 		random_next(&rng, 1);
 		if (y < 64 || random_next_int(&rng, 10) == 0) {
+			PRSTR("Lava lake actually being attempted");
+			PRRND(rng);
 			int rand_value = random_next(&rng, 2);
 			rng = (rng * __ldg(&lake_multipliers[rand_value]) + __ldg(&lake_addends[rand_value])) & 0xffffffffffffULL;
 		}
+		PRRND(rng);
 	}
 
 	// ores and stuff
 	advance3780(&rng);
+	PRRND(rng);
 
 	// advance69 accounts for the case of a clay patch
-	if (checkTrees(rng)) {// || (advance69(&rng), checkTrees(rng))
+	if (checkTrees(seed, rng)) {// || (advance69(&rng), checkTrees(rng))
 		uint32_t index = atomicAdd(count, 1);
 		output[index] = seed;
 	}
@@ -556,7 +583,7 @@ int main() {
 	uint32_t* count;
 	cudaMallocManaged(&count, sizeof(*count));
 	
-	for (uint64_t seed =0; seed< (20000000000ULL);seed+=SEEDS_PER_CALL) {
+	for (uint64_t seed = 0; seed < (1ULL << 48);seed+=SEEDS_PER_CALL) {
 		uint64_t start = getCurrentTimeMillis();
 		
 		*count = 0;
