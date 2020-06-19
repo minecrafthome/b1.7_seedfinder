@@ -93,6 +93,10 @@ DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_local_l2(const void* const pt
   asm("prefetch.local.L2 [%0];" : : PXL_GLOBAL_PTR(ptr));
 }
 
+#if __CUDA__ < 10
+#define __ldg(ptr) (*(ptr))
+#endif
+
 
 
 // ===== BIOME GENERATIOR IMPLEMENTATION ===== //
