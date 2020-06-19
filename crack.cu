@@ -579,10 +579,11 @@ int main() {
 	
 	cudaSetDevice(0);
 	uint64_t* buffer;
-	cudaMallocManaged(&buffer, sizeof(*buffer) * (SEEDS_PER_CALL>>5));
+	GPU_ASSERT(cudaMallocManaged(&buffer, sizeof(*buffer) * (SEEDS_PER_CALL>>5)));
+	GPU_ASSERT(cudaPeekAtLastError());
 	uint32_t* count;
-	cudaMallocManaged(&count, sizeof(*count));
-	
+	GPU_ASSERT(cudaMallocManaged(&count, sizeof(*count)));
+	GPU_ASSERT(cudaPeekAtLastError());
 	for (uint64_t seed = 0; seed < (1ULL << 48);seed+=SEEDS_PER_CALL) {
 		uint64_t start = getCurrentTimeMillis();
 		
@@ -594,8 +595,8 @@ int main() {
 		GPU_ASSERT(cudaPeekAtLastError());
 		GPU_ASSERT(cudaDeviceSynchronize());
 		if ((*count - 100) >(SEEDS_PER_CALL>>5)) {
-			printf("MEGA PANNIC, the resulting seed count was bigger than the seed buffer.");
-			return -1;
+			fprintf(stderr,"MEGA PANNIC, the resulting seed count was bigger than the seed buffer.");
+			return -2;
 		}
 		for(uint64_t i =0;i<*count;i++) {
 			if (buffer[i]!=0) {
@@ -611,4 +612,6 @@ int main() {
 		printf("Time elapsed %dms, speed: %.2fm/s, seed count: %llu, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(1ULL<<BLOCK_SIZE_BITS)))/((double)(end - start))/1000.0, actual_count,(((double)seed)/(1ULL<<48))*100);		
 	}
 	fclose(out_file);
+	fprintf(stderr, "Finished work unit");
+	return 0;
 }
