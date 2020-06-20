@@ -581,14 +581,14 @@ inline void gpuAssert(cudaError_t code, const char *file, int line) {
 uint64_t actual_count = 0;
 int main(int argc, char** argv) {
 	if (argc < 3) {
-		fprintf(stderr, "%s <from_batch_inclusive> <to_batch_exclusive> [gpu_device]\n", argv[0]);
-		return 0;
+		fprintf(stderr, "%s <from_batch_inclusive> <to_batch_exclusive (max %lld)> [gpu_device]\n", argv[0], (1ULL << 48) / SEEDS_PER_CALL);
+		return 1;
 	}
 	int start_batch = atoi(argv[1]);
 	int end_batch = atoi(argv[2]);
 	if (start_batch < 0 || start_batch >= end_batch || end_batch > (1ULL << 48) / SEEDS_PER_CALL) {
 		fprintf(stderr, "Invalid batch bounds\n");
-		return 0;
+		return 1;
 	}
 	int gpu_device = argc <= 3 ? 0 : atoi(argv[3]);
 
