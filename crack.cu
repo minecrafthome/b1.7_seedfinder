@@ -61,6 +61,10 @@ __host__ __device__ static inline void advance3780(Random *random) {
     *random = (*random * 0xF7D729EDC211ULL + 0x140CD08661C4ULL) & RANDOM_MASK;
 }
 
+__host__ __device__ static inline void advance3849(Random *random) {
+    *random = (*random * 0xB3567856530DULL + 0x32F4D050A7B3ULL) & RANDOM_MASK;
+}
+
 __constant__ uint64_t const lake_multipliers[4] = {0x8BEF0ACF36C1ULL, 0xAA5EABD3FD81ULL, 0x585E479A5441ULL, 0x62F233AE3B01ULL};
 __constant__ uint64_t const lake_addends[4] = {0x7F29273874B0ULL, 0x76FADBB58D60ULL, 0xF894278A4A10ULL, 0x5BD8A509AAC0ULL};
 
@@ -533,11 +537,14 @@ __global__ __launch_bounds__(1ULL<<BLOCK_SIZE_BITS,4) static void checkSeed(uint
 	}
 
 	// ores and stuff
-	advance3780(&rng);
+	//advance3780(&rng);
+	// advance69 accounts for the case of a clay patch
+	//advance69(&rng);
+	// combine ores and clay
+	advance3849(&rng);
 	PRRND(rng);
 
-	// advance69 accounts for the case of a clay patch
-	if (checkTrees(seed, rng)) {// || (advance69(&rng), checkTrees(rng))
+	if (checkTrees(seed, rng)) {
 		uint32_t index = atomicAdd(count, 1);
 		output[index] = seed;
 	}
