@@ -555,10 +555,14 @@ namespace host_processing { //region Host side processing
 
     uint32_t actual_count = 0;
     int host_main(int argc, char** argv) {
-        int start_batch = 0;
-        int end_batch = 100;
+        if (argc < 3) {
+            fprintf(stderr, "Not enough arguments\n");
+            return 2;
+        }
+        int start_batch = atoi(argv[1]);
+        int end_batch = atoi(argv[2]);
         if (start_batch < 0 || start_batch >= end_batch || end_batch > (1ULL << 48) / SEEDS_PER_CALL) {
-            fprintf(stderr, "Invalid batch bounds\n");
+            fprintf(stderr, "Invalid batch bounds: %d to %d\n", start_batch, end_batch);
             return 1;
         }
         int gpu_device = 0;
@@ -598,12 +602,12 @@ namespace host_processing { //region Host side processing
                 uint64_t seed = seedBuffer[i];
                 if( seed != 0) {
                     actual_count ++;
-					printf("SEED FOUND: %lld\n",seed);
+					fprintf(stderr, "SEED FOUND: %lld\n",seed);
                 }               
             }
             
             uint64_t end = getCurrentTimeMillis();
-            fprintf(stderr, "Time elapsed %dms, speed: %.2fm/s, seed count 1: %i, seed count 2: %i, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(BLOCK_SIZE)))/((double)(end - start))/1000.0,*count, actual_count, (((double)(seed-(start_batch * SEEDS_PER_CALL)))/((end_batch * SEEDS_PER_CALL)-(start_batch * SEEDS_PER_CALL)))*100);      
+            printf("Time elapsed %dms, speed: %.2fm/s, seed count 1: %i, seed count 2: %i, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(BLOCK_SIZE)))/((double)(end - start))/1000.0,*count, actual_count, (((double)(seed-(start_batch * SEEDS_PER_CALL)))/((end_batch * SEEDS_PER_CALL)-(start_batch * SEEDS_PER_CALL)))*100);      
         }
         fprintf(stderr, "Finished work unit\n");
         return 0;
