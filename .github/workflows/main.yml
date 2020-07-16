@@ -1,0 +1,25 @@
+name: cuda-cross-build
+
+on: [push]
+
+jobs:
+  windows_cuda:
+    name: cuda/release/windows
+    runs-on: [windows-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: setup
+      run: |
+        choco install cuda -y
+    - name: configure
+      run: |
+        echo "##[add-path]C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\extras\CUPTI\libx64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib"
+    - name: build
+      run: |
+        nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v
+        dir
+    - uses: actions/upload-artifact@v2
+      with:
+       name: panorama-cuda-win
+       path: .\pano*.exe
