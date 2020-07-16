@@ -5,11 +5,14 @@
 #include <algorithm>
 #include <inttypes.h>
 
+#include <cuda.h>
+
 #ifdef BOINC
   #include "boinc_api.h"
+#if defined _WIN32 || defined _WIN64
   #include "boinc_win.h"
 #endif
-
+#endif
 
 
 // ===== LCG IMPLEMENTATION ===== //

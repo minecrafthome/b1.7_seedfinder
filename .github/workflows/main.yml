@@ -17,9 +17,23 @@ jobs:
         echo "##[add-path]C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\extras\CUPTI\libx64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib"
     - name: build
       run: |
-        nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\ -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\win\ -LD:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\lib\win\ -lboinc_api -lboinc -DBOINC=1
+        nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\ -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\win\ -LD:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\lib\win\ -lboinc_api -lboinc -DBOINC -D_WIN32
         dir
     - uses: actions/upload-artifact@v2
       with:
        name: panorama-cuda-win
        path: .\pano*.exe
+  linux_cuda:
+    name: cuda/release/linux
+    runs-on: [ubuntu-latest]
+    container: nvidia/cuda:11.0-devel-ubuntu18.04-rc
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        nvcc grass_crack.cu -m64 -O3 -o pano -DBOINC -Iboinc/ -Lboinc/lib/lin -lcuda -lboinc_api -lboinc
+        ls -la
+    - uses: actions/upload-artifact@v2
+      with:
+       name: panorama-cuda-lin
+       path: .pano*
