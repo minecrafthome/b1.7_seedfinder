@@ -5,6 +5,11 @@
 #include <algorithm>
 #include <inttypes.h>
 
+#ifdef BOINC
+  #include "boinc_api.h"
+  #include "boinc_win.h"
+#endif
+
 
 
 // ===== LCG IMPLEMENTATION ===== //
@@ -525,12 +530,41 @@ __global__ __launch_bounds__(BLOCK_SIZE,2) static void part2ElectricBooglo(uint6
 
 namespace host_processing { //region Host side processing
 
+    #ifdef BOINC
+    bool setCudaBlockingSync(int device) {
+        CUdevice  hcuDevice;
+        CUcontext hcuContext;
+
+        CUresult status = cuInit(0);
+        if(status != CUDA_SUCCESS)
+           return false;
+
+        status = cuDeviceGet( &hcuDevice, device);
+        if(status != CUDA_SUCCESS)
+           return false;
+
+        status = cuCtxCreate( &hcuContext, 0x4, hcuDevice );
+        if(status != CUDA_SUCCESS)
+           return false;
+
+        return true;
+    }
+    #endif
+    #ifndef BOINC
+    #define boinc_begin_critical_section()
+    #define boinc_end_critical_section()
+    #define boinc_finish(status)
+    #define boinc_fraction_done(fraction)
+    #endif
 
     #define GPU_ASSERT(code) gpuAssert((code), __FILE__, __LINE__)
     inline void gpuAssert(cudaError_t code, const char *file, int line) {
       if (code != cudaSuccess) {
         fprintf(stderr, "GPUassert: %s (code %d) %s %d\n", cudaGetErrorString(code), code, file, line);
+        boinc_finish(code);
+        #ifndef BOINC
         exit(code);
+        #endif
       }
     }
 
@@ -555,6 +589,15 @@ namespace host_processing { //region Host side processing
 
     uint32_t actual_count = 0;
     int host_main(int argc, char** argv) {
+
+        #ifdef BOINC
+        BOINC_OPTIONS options;
+
+        boinc_options_defaults(options);
+        options.normal_thread_priority = true;
+        boinc_init_options(&options);
+        #endif
+
         if (argc < 3) {
             fprintf(stderr, "Not enough arguments\n");
             return 2;
@@ -565,11 +608,23 @@ namespace host_processing { //region Host side processing
             fprintf(stderr, "Invalid batch bounds: %d to %d\n", start_batch, end_batch);
             return 1;
         }
-        int gpu_device = 0;
 
         fprintf(stderr, "doing between %lld (inclusive) and %lld (exclusive)\n", start_batch * SEEDS_PER_CALL, end_batch * SEEDS_PER_CALL);
 
-        
+        int gpu_device = 0;
+
+        #ifdef BOINC
+        APP_INIT_DATA aid;
+        boinc_get_init_data(aid);
+        if (aid.gpu_device_num >= 0) {
+            gpu_device = aid.gpu_device_num;
+            fprintf(stderr,"boinc gpu %i gpuindex: %i \n", aid.gpu_device_num, gpu_device);
+        } else {
+            fprintf(stderr,"stdalone gpuindex % \n", gpu_device);
+        }
+
+        setCudaBlockingSync(gpu_device);
+        #endif
         cudaSetDevice(gpu_device);
         GPU_ASSERT(cudaDeviceSetCacheConfig(cudaFuncCachePreferShared));
         //cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
@@ -589,6 +644,7 @@ namespace host_processing { //region Host side processing
         for (uint64_t seed = start_batch * SEEDS_PER_CALL, end_seed = end_batch * SEEDS_PER_CALL; seed < end_seed; seed+=SEEDS_PER_CALL) {
             uint64_t start = getCurrentTimeMillis();
             
+            boinc_begin_critical_section();
             *count = 0;
             checkSeedBiomesHumidity<<< 1ULL << WORK_SIZE_BITS, BLOCK_SIZE>>>(seed, count, seedBuffer); // produces about 32k seeds per call
             GPU_ASSERT(cudaPeekAtLastError());
@@ -605,11 +661,17 @@ namespace host_processing { //region Host side processing
 					fprintf(stderr, "SEED FOUND: %lld\n",seed);
                 }               
             }
+            boinc_end_critical_section();
             
             uint64_t end = getCurrentTimeMillis();
-            printf("Time elapsed %dms, speed: %.2fm/s, seed count 1: %i, seed count 2: %i, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(BLOCK_SIZE)))/((double)(end - start))/1000.0,*count, actual_count, (((double)(seed-(start_batch * SEEDS_PER_CALL)))/((end_batch * SEEDS_PER_CALL)-(start_batch * SEEDS_PER_CALL)))*100);      
+            double fraction_done = ((double)(seed-(start_batch * SEEDS_PER_CALL)))/((end_batch * SEEDS_PER_CALL)-(start_batch * SEEDS_PER_CALL));
+            printf("Time elapsed %dms, speed: %.2fm/s, seed count 1: %i, seed count 2: %i, percent done: %f\n", (int)(end - start),((double)((1ULL<<WORK_SIZE_BITS)*(BLOCK_SIZE)))/((double)(end - start))/1000.0,*count, actual_count, fraction_done*100);      
+            if ((seed / SEEDS_PER_CALL) % 30) { // about every 15 seconds
+                boinc_fraction_done(fraction_done);
+            }
         }
         fprintf(stderr, "Finished work unit\n");
+        boinc_finish(0);
         return 0;
     }
 }
