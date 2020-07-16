@@ -17,7 +17,7 @@ jobs:
         echo "##[add-path]C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\extras\CUPTI\libx64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib"
     - name: build
       run: |
-        nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\ -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\win\ -LD:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\lib\win\ -lboinc_api -lboinc -DBOINC -D_WIN32
+        nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\ -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\win\ -LD:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\lib\win\ -lboinc_api -lboinc -lcuda -luser32 -DBOINC -D_WIN32
         dir
     - uses: actions/upload-artifact@v2
       with:
@@ -36,4 +36,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
        name: panorama-cuda-lin
-       path: .pano*
+       path: ./pano*
