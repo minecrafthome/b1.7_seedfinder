@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 #include <algorithm>
+#include <inttypes.h>
 
 
 
@@ -153,13 +154,13 @@ namespace simplex { //region Simplex layer gen
             }
             for(int index = 0; index<256; index++) {
                 uint32_t randomIndex = random_next_int(random, 256ull - index) + index;
-                if (randomIndex != index) {
+                //if (randomIndex != index) {
                     // swap
                     uint8_t v1 = getValue(permutations,index);
                     uint8_t v2 = getValue(permutations,randomIndex);
                     setValue(permutations,index, v2);
                     setValue(permutations, randomIndex, v1);
-                }
+                //}
             }
             double XCoords = (double) chunkX * offsetX * octaveAmplification + xo;
             double ZCoords = (double) chunkZ * offsetZ * octaveAmplification + yo;
@@ -374,6 +375,16 @@ namespace more_simplex {
 
     #define getSimplexHumidtyInital(x,y,seed,out_array) getSimplexInital(x,y,0.05000000074505806, 0.05000000074505806, 0.33333333333333331, 4, seed, out_array)
     #define getSimplexHumidty(x,y,data_array) getSimplex(x,y,0.05000000074505806, 0.05000000074505806, 0.33333333333333331, 4, data_array)
+	
+	
+	__constant__ uint8_t const biomeLookup[] = {11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 8, 8, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 8, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 9, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1};
+	__device__ static inline uint8_t getBiome(int x, int z, SimplexOctave precipOctaves[], SimplexOctave tempOctaves[], SimplexOctave humidOctaves[]) {
+		double precipAtPos =  getSimplex((double)x, (double)z, 0.25, 0.25, 0.58823529411764708, 2, precipOctaves);
+		double tempAtPos = getSimplex((double)x, (double)z, 0.02500000037252903, 0.02500000037252903, 0.25, 4, tempOctaves);
+		double humidityAtPos = getSimplex((double)x, (double)z, 0.05000000074505806, 0.05000000074505806, 0.33333333333333331, 4, humidOctaves);
+		int32_t index = ConvertToIndex(getTempFromTempAndPrecip(tempAtPos, precipAtPos)) + ConvertToIndex(getHumidFromHumidAndPrecip(humidityAtPos,precipAtPos)) * 64;
+		return __ldg(&biomeLookup[index]);
+	}
 }
 using namespace more_simplex;
 
@@ -387,32 +398,38 @@ using namespace more_simplex;
 
 #define GRASS1_X 64
 #define GRASS1_Z (-53)
-#define GRASS1_MIN_HUMID decodeMinHumid(0.2624434389140271)
-#define GRASS1_MAX_HUMID decodeMaxHumid(0.37837837837837845)
+#define GRASS1_MIN_HUMID decodeMinHumid(0.2723577235772357)
+#define GRASS1_MAX_HUMID decodeMaxHumid(0.325)
 
 #define GRASS2_X 59
 #define GRASS2_Z (-19)
-#define GRASS2_MIN_HUMID decodeMinHumid(0.44705882352941173)
-#define GRASS2_MAX_HUMID decodeMaxHumid(0.5814977973568282)
+#define GRASS2_MIN_HUMID decodeMinHumid(0.44313725490196076)
+#define GRASS2_MAX_HUMID decodeMaxHumid(0.5081967213114754)
 
 #define GRASS3_X 83
 #define GRASS3_Z (-40)
-#define GRASS3_MIN_HUMID decodeMinHumid(0.41630901287553645)
-#define GRASS3_MAX_HUMID decodeMaxHumid(0.5470852017937219)
+#define GRASS3_MIN_HUMID decodeMinHumid(0.4117647058823529)
+#define GRASS3_MAX_HUMID decodeMaxHumid(0.4833333333333334)
 
-// #define PLAINS_BIOME_X 48
-// #define PLAINS_BIOME_Z -72
 
-// #define PLAINS_BIOME_PLAYER_X 61
-// #define PLAINS_BIOME_PLAYER_Z -70
 
-// #define PLAINS_BIOME_2_X 49
-// #define PLAINS_BIOME_2_Z -71
+#define PLAINS_BIOME_PLAYER_X 61
+#define PLAINS_BIOME_PLAYER_Z -68
+
+#define PLAINS_BIOME_X 48
+#define PLAINS_BIOME_Z -72
+
+#define DESERT_BIOME_X 47
+#define DESERT_BIOME_Z -72
+
+#define PLAINS_FOREST_BIOME_2_X 33
+#define PLAINS_FOREST_BIOME_2_Z -82
+
+#define DESERT_BIOME_2_X 33
+#define DESERT_BIOME_2_Z -81
 
 
 // //RANDOMLY CHOOSEN, GET ACTUALL DESERT COORDS
-// #define DESERT_BIOME_X 43
-// #define DESERT_BIOME_Z -70
 
 
 //Test humidity
@@ -422,9 +439,9 @@ __global__ __launch_bounds__(BLOCK_SIZE,4) static void checkSeedBiomesHumidity(u
         
     register Random biomeSeed = get_random(seed  * 39811LL);
     SimplexOctave humidOct[4];
-    double humidAtPos = getSimplexHumidtyInital((double)GRASS1_X, (double)GRASS1_Z, &biomeSeed, humidOct);
+    double humidAtPos = getSimplexHumidtyInital((double)GRASS3_X, (double)GRASS3_Z, &biomeSeed, humidOct);
     //Plains biome humidity check
-    if (!(GRASS1_MIN_HUMID<humidAtPos&&humidAtPos<GRASS1_MAX_HUMID)) {
+    if (!(GRASS3_MIN_HUMID<humidAtPos&&humidAtPos<GRASS3_MAX_HUMID)) {
         return;
     }
 
@@ -432,61 +449,79 @@ __global__ __launch_bounds__(BLOCK_SIZE,4) static void checkSeedBiomesHumidity(u
 if (!(min < humidAtPos && humidAtPos < max)) return;
 
     testHumidity(GRASS2_X, GRASS2_Z, GRASS2_MIN_HUMID, GRASS2_MAX_HUMID)
-    testHumidity(GRASS3_X, GRASS3_Z, GRASS3_MIN_HUMID, GRASS3_MAX_HUMID)
+    testHumidity(GRASS1_X, GRASS1_Z, GRASS1_MIN_HUMID, GRASS1_MAX_HUMID)
     
     seeds[atomicAdd(count, 1)] = seed;
 }
 
 //Test temperature and other points
-/*
+
 __global__ __launch_bounds__(BLOCK_SIZE,2) static void part2ElectricBooglo(uint64_t worldSeedOffset, uint32_t count, uint64_t* seeds) {
     if (blockIdx.x * blockDim.x + threadIdx.x >= count)
         return;
     uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
     int64_t seed = seeds[index];
     
-        
-    register Random biomeSeed = get_random(seed  * 9871LL);
-    SimplexOctave tempOct[4];
-    double tempAtPos = getSimplexNoise((double)PLAINS_BIOME_X, (double)PLAINS_BIOME_Z, 0.02500000037252903, 0.02500000037252903, 0.25, 4, &biomeSeed, tempOct);
-    if (!(1.06<tempAtPos&&tempAtPos<3.006)) {
-        seeds[index] = 0;
-        return;
-    }
-    biomeSeed = get_random(seed  * 0x84a59LL);
-    SimplexOctave precipOct[2];
-    double precipAtPos = getSimplexNoise((double)PLAINS_BIOME_X, (double)PLAINS_BIOME_Z, 0.25, 0.25, 0.58823529411764708, 2, &biomeSeed, precipOct);
-    //If its not a plains biome
-    if (ConvertToIndex(getTempFromTempAndPrecip(tempAtPos, precipAtPos))<62) {
-        seeds[index] = 0;
-        return;
-    }
-    
-    
-    
-    //Check other plains biome
-    precipAtPos = getSimplexNoiseFromOctave((double)PLAINS_BIOME_PLAYER_X, (double)PLAINS_BIOME_PLAYER_Z, 0.25, 0.25, 0.58823529411764708, 2, precipOct);
-    tempAtPos = getSimplexNoiseFromOctave((double)PLAINS_BIOME_PLAYER_X, (double)PLAINS_BIOME_PLAYER_Z, 0.02500000037252903, 0.02500000037252903, 0.25, 4, tempOct);
-    //If its not a plains biome
-    if (ConvertToIndex(getTempFromTempAndPrecip(tempAtPos, precipAtPos))<62) {
-        seeds[index] = 0;
-        return;
-    }
-    
-    
-    
-    /*
-    biomeSeed = get_random(seed  * 39811LL);
-    SimplexOctave humidOct[4];
-    double humidAtPos = getSimplexNoise((double)PLAINS_BIOME_X, (double)PLAINS_BIOME_Z, 0.05000000074505806, 0.05000000074505806, 0.33333333333333331, 4, &biomeSeed, humidOct);
-    
-    if (ConvertToIndex(getTempFromTempAndPrecip(humidAtPos, precipAtPos))<62) {
-        seeds[index] = 0;
-        return;
-    }
-    *//*
+	//REGION: check if the player is in a plains biome
+	
+	SimplexOctave tempOct[4];
+	SimplexOctave precipOct[2];
+	SimplexOctave humidOct[4];
+    {
+		register Random biomeSeed = get_random(seed  * 9871LL);
+		double tempAtPos = getSimplexNoise((double)PLAINS_BIOME_PLAYER_X, (double)PLAINS_BIOME_PLAYER_Z, 0.02500000037252903, 0.02500000037252903, 0.25, 4, &biomeSeed, tempOct);
+		if (!(1.06<tempAtPos&&tempAtPos<3.006)) {
+			seeds[index] = 0;
+			return;
+		}
+		biomeSeed = get_random(seed  * 0x84a59LL);
+		double precipAtPos = getSimplexNoise((double)PLAINS_BIOME_PLAYER_X, (double)PLAINS_BIOME_PLAYER_Z, 0.25, 0.25, 0.58823529411764708, 2, &biomeSeed, precipOct);
+		//If its not a plains biome
+		if (ConvertToIndex(getTempFromTempAndPrecip(tempAtPos, precipAtPos))<62) {
+			seeds[index] = 0;
+			return;
+		}
+		
+		
+		biomeSeed = get_random(seed  * 39811LL);
+		double humidAtPos = getSimplexHumidtyInital((double)PLAINS_BIOME_PLAYER_X, (double)PLAINS_BIOME_PLAYER_Z, &biomeSeed, humidOct);
+		int32_t humid_index = ConvertToIndex(getHumidFromHumidAndPrecip(humidAtPos, precipAtPos));
+		if (!(12 < humid_index && humid_index < 29)) {
+			seeds[index] = 0;
+			return;	
+		}
+	}
+	
+	
+	if (getBiome(DESERT_BIOME_X, DESERT_BIOME_Z, precipOct, tempOct, humidOct)!=8) {
+		seeds[index] = 0;
+        return;	
+	}
+	
+	int biome_num = getBiome(PLAINS_BIOME_X, PLAINS_BIOME_Z, precipOct, tempOct, humidOct);
+	if (!(biome_num==9||biome_num==6)) {
+		seeds[index] = 0;
+        return;	
+	}
+	
+	
+	if (getBiome(DESERT_BIOME_X, DESERT_BIOME_Z, precipOct, tempOct, humidOct)!=8) {
+		seeds[index] = 0;
+        return;	
+	}
+	
+	if (getBiome(DESERT_BIOME_2_X, DESERT_BIOME_2_Z, precipOct, tempOct, humidOct)!=8) {
+		seeds[index] = 0;
+        return;	
+	}
+	biome_num = getBiome(PLAINS_FOREST_BIOME_2_X, PLAINS_FOREST_BIOME_2_Z, precipOct, tempOct, humidOct);
+	if (!(biome_num==9||biome_num==4||biome_num==6)) {
+		seeds[index] = 0;
+        return;	
+	}
+ 
 }
-*/
+
 
 namespace host_processing { //region Host side processing
 
@@ -518,10 +553,10 @@ namespace host_processing { //region Host side processing
     #endif
 
 
-    uint64_t actual_count = 0;
+    uint32_t actual_count = 0;
     int host_main(int argc, char** argv) {
         int start_batch = 0;
-        int end_batch = 50;
+        int end_batch = 100;
         if (start_batch < 0 || start_batch >= end_batch || end_batch > (1ULL << 48) / SEEDS_PER_CALL) {
             fprintf(stderr, "Invalid batch bounds\n");
             return 1;
@@ -555,14 +590,15 @@ namespace host_processing { //region Host side processing
             GPU_ASSERT(cudaPeekAtLastError());
             GPU_ASSERT(cudaDeviceSynchronize());
             //Double check work size calculation
-            // part2ElectricBooglo<<< ceil(((double)*count)/BLOCK_SIZE), BLOCK_SIZE>>>(seed, *count, seedBuffer);
-            // GPU_ASSERT(cudaPeekAtLastError());
-            // GPU_ASSERT(cudaDeviceSynchronize());
-            uint32_t actual_count = 0;
+            part2ElectricBooglo<<< ceil(((double)*count)/BLOCK_SIZE), BLOCK_SIZE>>>(seed, *count, seedBuffer);
+            GPU_ASSERT(cudaPeekAtLastError());
+            GPU_ASSERT(cudaDeviceSynchronize());
+            //uint32_t actual_count = 0;
             for(uint32_t i = 0; i<*count;i++) {
                 uint64_t seed = seedBuffer[i];
                 if( seed != 0) {
                     actual_count ++;
+					printf("SEED FOUND: %lld\n",seed);
                 }               
             }
             
