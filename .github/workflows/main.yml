@@ -11,10 +11,10 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: setup
       run: |
-        choco install cuda -y
+        choco install cuda --version=10.1 -y
     - name: configure
       run: |
-        echo "##[add-path]C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\extras\CUPTI\libx64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib"
+        echo "##[add-path]C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\extras\CUPTI\libx64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib"
     - name: build
       run: |
         nvcc grass_crack.cu -o pano.exe -O3 -m=64 -Xptxas -allow-expensive-optimizations=true -Xptxas -v -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\ -ID:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\win\ -LD:\a\b1.7_seedfinder\b1.7_seedfinder\boinc\lib\win\ -lboinc_api -lboinc -lcuda -luser32 -DBOINC -D_WIN32
@@ -26,12 +26,12 @@ jobs:
   linux_cuda:
     name: cuda/release/linux
     runs-on: [ubuntu-latest]
-    container: nvidia/cuda:11.0-devel-ubuntu18.04-rc
+    container: nvidia/cuda:10.1-devel-ubuntu18.04
     steps:
     - uses: actions/checkout@v2
     - name: build
       run: |
-        nvcc grass_crack.cu -m64 -O3 -o pano -DBOINC -Iboinc/ -Lboinc/lib/lin -lcuda -lboinc_api -lboinc
+        nvcc grass_crack.cu -m64 -O3 -o pano -DBOINC -Iboinc/ -Lboinc/lib/lin -lcuda -lboinc_api -lboinc -Xptxas -allow-expensive-optimizations=true -Xptxas -v
         ls -la
     - uses: actions/upload-artifact@v2
       with:
