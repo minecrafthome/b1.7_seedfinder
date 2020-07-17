@@ -26,12 +26,12 @@ jobs:
   linux_cuda:
     name: cuda/release/linux
     runs-on: [ubuntu-latest]
-    container: nvidia/cuda:10.1-devel-ubuntu18.04
+    container: nvidia/cuda:10.0-devel-ubuntu18.04
     steps:
     - uses: actions/checkout@v2
     - name: build
       run: |
-        nvcc grass_crack.cu -m64 -O3 -o pano -DBOINC -Iboinc/ -Lboinc/lib/lin -lcuda -lboinc_api -lboinc -Xptxas -allow-expensive-optimizations=true -Xptxas -v
+        nvcc grass_crack.cu -Xcompiler -static -Xcompiler -static-libgcc -Xcompiler -static-libstdc++ -m64 -O3 -o pano -DBOINC -Iboinc/ -Lboinc/lib/lin -lcuda -lboinc_api -lboinc -Xptxas -allow-expensive-optimizations=true -Xptxas -v
         ls -la
     - uses: actions/upload-artifact@v2
       with:
